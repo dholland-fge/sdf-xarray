@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import move
 from typing import TYPE_CHECKING, Literal, TypeAlias
 
 if TYPE_CHECKING:
@@ -81,6 +82,6 @@ def fetch_dataset(
             cache_path,
             save_path / dataset_name,
         )
-        return cache_path.rename(save_path / dataset_name)
+        return move(cache_path, save_path / dataset_name)
 
     return cache_path
