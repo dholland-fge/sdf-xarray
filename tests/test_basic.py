@@ -1,5 +1,3 @@
-import pathlib
-
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -9,20 +7,19 @@ from sdf_xarray import (
     SDFPreprocess,
     _process_latex_name,
     _resolve_glob,
+    download,
     open_mfdataset,
 )
 
-EXAMPLE_FILES_DIR = pathlib.Path(__file__).parent / "example_files_1D"
-EXAMPLE_MISMATCHED_FILES_DIR = (
-    pathlib.Path(__file__).parent / "example_mismatched_files"
-)
-EXAMPLE_ARRAYS_DIR = pathlib.Path(__file__).parent / "example_array_no_grids"
-EXAMPLE_3D_DIST_FN = pathlib.Path(__file__).parent / "example_dist_fn"
-EXAMPLE_2D_PARTICLE_DATA = pathlib.Path(__file__).parent / "example_two_probes_2D"
+TEST_FILES_DIR = download.fetch_dataset("test_files_1D")
+TEST_MISMATCHED_FILES_DIR = download.fetch_dataset("test_mismatched_files")
+TEST_ARRAYS_DIR = download.fetch_dataset("test_array_no_grids")
+TEST_3D_DIST_FN = download.fetch_dataset("test_dist_fn")
+TEST_2D_PARTICLE_DATA = download.fetch_dataset("test_two_probes_2D")
 
 
 def test_basic():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as df:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as df:
         ex_field = "Electric_Field_Ex"
         assert ex_field in df
         x_coord = "X_Grid_mid"
@@ -36,7 +33,7 @@ def test_basic():
 
 
 def test_constant_name_and_units():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as df:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as df:
         name = "Absorption_Total_Laser_Energy_Injected"
         full_name = "Absorption/Total Laser Energy Injected"
         assert name in df
@@ -45,7 +42,7 @@ def test_constant_name_and_units():
 
 
 def test_coords():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0010.sdf") as df:
+    with xr.open_dataset(TEST_FILES_DIR / "0010.sdf") as df:
         px_electron = "dist_fn_x_px_electron"
         assert px_electron in df
         print(df[px_electron].coords)
@@ -55,7 +52,7 @@ def test_coords():
 
 
 def test_particles():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0010.sdf", keep_particles=True) as df:
+    with xr.open_dataset(TEST_FILES_DIR / "0010.sdf", keep_particles=True) as df:
         px_protons = "Particles_Px_proton"
         assert px_protons in df
         x_coord = "X_Particles_proton"
@@ -64,13 +61,13 @@ def test_particles():
 
 
 def test_no_particles():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0010.sdf", keep_particles=False) as df:
+    with xr.open_dataset(TEST_FILES_DIR / "0010.sdf", keep_particles=False) as df:
         px_protons = "Particles_Px_proton"
         assert px_protons not in df
 
 
 def test_multiple_files_one_time_dim():
-    with open_mfdataset(EXAMPLE_FILES_DIR.glob("*.sdf"), keep_particles=True) as df:
+    with open_mfdataset(TEST_FILES_DIR.glob("*.sdf"), keep_particles=True) as df:
         ex_field = df["Electric_Field_Ex"]
         assert sorted(ex_field.coords) == sorted(("X_Grid_mid", "time"))
         assert ex_field.shape == (11, 16)
@@ -158,7 +155,7 @@ def test_multiple_files_one_time_dim():
 
 def test_multiple_files_multiple_time_dims():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"), separate_times=True, keep_particles=True
+        TEST_FILES_DIR.glob("*.sdf"), separate_times=True, keep_particles=True
     ) as df:
         assert list(df["Electric_Field_Ex"].coords) != list(
             df["Electric_Field_Ez"].coords
@@ -171,61 +168,61 @@ def test_multiple_files_multiple_time_dims():
 
 
 def test_resolve_glob_from_string_pattern():
-    pattern = str(EXAMPLE_FILES_DIR / "*.sdf")
+    pattern = str(TEST_FILES_DIR / "*.sdf")
     result = _resolve_glob(pattern)
-    expected = sorted(EXAMPLE_FILES_DIR.glob("*.sdf"))
+    expected = sorted(TEST_FILES_DIR.glob("*.sdf"))
     assert result == expected
 
 
 def test_resolve_glob_from_path_glob():
-    pattern = EXAMPLE_FILES_DIR.glob("*.sdf")
+    pattern = TEST_FILES_DIR.glob("*.sdf")
     result = _resolve_glob(pattern)
-    expected = sorted(EXAMPLE_FILES_DIR.glob("*.sdf"))
+    expected = sorted(TEST_FILES_DIR.glob("*.sdf"))
     assert result == expected
 
 
 def test_resolve_glob_from_path_missing_glob():
-    pattern = EXAMPLE_FILES_DIR
+    pattern = TEST_FILES_DIR
     with pytest.raises(TypeError):
         _resolve_glob(pattern)
 
 
 def test_resolve_glob_from_path_list():
-    pattern = [EXAMPLE_FILES_DIR / "0000.sdf"]
+    pattern = [TEST_FILES_DIR / "0000.sdf"]
     result = _resolve_glob(pattern)
-    expected = [EXAMPLE_FILES_DIR / "0000.sdf"]
+    expected = [TEST_FILES_DIR / "0000.sdf"]
     assert result == expected
 
 
 def test_resolve_glob_from_path_list_multiple():
-    pattern = [EXAMPLE_FILES_DIR / "0000.sdf", EXAMPLE_FILES_DIR / "0001.sdf"]
+    pattern = [TEST_FILES_DIR / "0000.sdf", TEST_FILES_DIR / "0001.sdf"]
     result = _resolve_glob(pattern)
-    expected = [EXAMPLE_FILES_DIR / "0000.sdf", EXAMPLE_FILES_DIR / "0001.sdf"]
+    expected = [TEST_FILES_DIR / "0000.sdf", TEST_FILES_DIR / "0001.sdf"]
     assert result == expected
 
 
 def test_resolve_glob_from_path_list_multiple_unordered():
-    pattern = [EXAMPLE_FILES_DIR / "0001.sdf", EXAMPLE_FILES_DIR / "0000.sdf"]
+    pattern = [TEST_FILES_DIR / "0001.sdf", TEST_FILES_DIR / "0000.sdf"]
     result = _resolve_glob(pattern)
-    expected = [EXAMPLE_FILES_DIR / "0000.sdf", EXAMPLE_FILES_DIR / "0001.sdf"]
+    expected = [TEST_FILES_DIR / "0000.sdf", TEST_FILES_DIR / "0001.sdf"]
     assert result == expected
 
 
 def test_resolve_glob_from_path_list_multiple_duplicates():
     pattern = [
-        EXAMPLE_FILES_DIR / "0000.sdf",
-        EXAMPLE_FILES_DIR / "0000.sdf",
-        EXAMPLE_FILES_DIR / "0001.sdf",
+        TEST_FILES_DIR / "0000.sdf",
+        TEST_FILES_DIR / "0000.sdf",
+        TEST_FILES_DIR / "0001.sdf",
     ]
     result = _resolve_glob(pattern)
-    expected = [EXAMPLE_FILES_DIR / "0000.sdf", EXAMPLE_FILES_DIR / "0001.sdf"]
+    expected = [TEST_FILES_DIR / "0000.sdf", TEST_FILES_DIR / "0001.sdf"]
     assert result == expected
 
 
 def test_xr_erroring_on_mismatched_jobid_files():
     with pytest.raises(ValueError):  # noqa: PT011
         xr.open_mfdataset(
-            EXAMPLE_MISMATCHED_FILES_DIR.glob("*.sdf"),
+            TEST_MISMATCHED_FILES_DIR.glob("*.sdf"),
             combine="nested",
             data_vars="minimal",
             coords="minimal",
@@ -237,7 +234,7 @@ def test_xr_erroring_on_mismatched_jobid_files():
 
 def test_xr_multiple_files_data():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -292,7 +289,7 @@ def test_xr_multiple_files_data():
 
 def test_xr_time_dim():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         join="outer",
         preprocess=SDFPreprocess(),
     ) as df:
@@ -322,7 +319,7 @@ def test_xr_time_dim():
 
 def test_xr_latex_rename_variables():
     with xr.open_mfdataset(
-        EXAMPLE_ARRAYS_DIR.glob("*.sdf"),
+        TEST_ARRAYS_DIR.glob("*.sdf"),
         join="outer",
         preprocess=SDFPreprocess(),
         keep_particles=True,
@@ -360,7 +357,7 @@ def test_xr_latex_rename_variables():
 
 
 def test_xr_arrays_with_no_grids():
-    with xr.open_dataset(EXAMPLE_ARRAYS_DIR / "0001.sdf") as df:
+    with xr.open_dataset(TEST_ARRAYS_DIR / "0001.sdf") as df:
         laser_phase = "laser_x_min_phase"
         assert laser_phase in df
         assert df[laser_phase].shape == (1,)
@@ -372,35 +369,35 @@ def test_xr_arrays_with_no_grids():
 
 def test_xr_arrays_with_no_grids_multifile():
     with xr.open_mfdataset(
-        EXAMPLE_ARRAYS_DIR.glob("*.sdf"),
+        TEST_ARRAYS_DIR.glob("*.sdf"),
         join="outer",
         preprocess=SDFPreprocess(),
     ) as df:
         laser_phase = "laser_x_min_phase"
         assert laser_phase in df
-        assert df[laser_phase].shape == (2, 1)
+        assert df[laser_phase].shape == (1, 1)
 
         random_states = "Random_States"
         assert random_states in df
-        assert df[random_states].shape == (2, 8)
+        assert df[random_states].shape == (1, 8)
 
 
 def test_xr_3d_distribution_function():
-    with xr.open_dataset(EXAMPLE_3D_DIST_FN / "0000.sdf") as df:
+    with xr.open_dataset(TEST_3D_DIST_FN / "0000.sdf") as df:
         distribution_function = "dist_fn_x_px_py_Electron"
         assert df[distribution_function].shape == (16, 20, 20)
 
 
 def test_xr_drop_variables():
     with xr.open_dataset(
-        EXAMPLE_FILES_DIR / "0000.sdf", drop_variables=["Electric_Field_Ex"]
+        TEST_FILES_DIR / "0000.sdf", drop_variables=["Electric_Field_Ex"]
     ) as df:
         assert "Electric_Field_Ex" not in df
 
 
 def test_xr_drop_variables_multiple():
     with xr.open_dataset(
-        EXAMPLE_FILES_DIR / "0000.sdf",
+        TEST_FILES_DIR / "0000.sdf",
         drop_variables=["Electric_Field_Ex", "Electric_Field_Ey"],
     ) as df:
         assert "Electric_Field_Ex" not in df
@@ -409,7 +406,7 @@ def test_xr_drop_variables_multiple():
 
 def test_xr_drop_variables_original():
     with xr.open_dataset(
-        EXAMPLE_FILES_DIR / "0000.sdf",
+        TEST_FILES_DIR / "0000.sdf",
         drop_variables=["Electric_Field/Ex", "Electric_Field/Ey"],
     ) as df:
         assert "Electric_Field_Ex" not in df
@@ -418,7 +415,7 @@ def test_xr_drop_variables_original():
 
 def test_xr_drop_variables_mixed():
     with xr.open_dataset(
-        EXAMPLE_FILES_DIR / "0000.sdf",
+        TEST_FILES_DIR / "0000.sdf",
         drop_variables=["Electric_Field/Ex", "Electric_Field_Ey"],
     ) as df:
         assert "Electric_Field_Ex" not in df
@@ -428,13 +425,13 @@ def test_xr_drop_variables_mixed():
 def test_xr_erroring_drop_variables():
     with pytest.raises(KeyError):
         xr.open_dataset(
-            EXAMPLE_FILES_DIR / "0000.sdf", drop_variables=["Electric_Field/E"]
+            TEST_FILES_DIR / "0000.sdf", drop_variables=["Electric_Field/E"]
         )
 
 
 def test_xr_loading_multiple_probes():
     with xr.open_dataset(
-        EXAMPLE_2D_PARTICLE_DATA / "0002.sdf",
+        TEST_2D_PARTICLE_DATA / "0002.sdf",
         keep_particles=True,
         probe_names=["Electron_Front_Probe", "Electron_Back_Probe"],
     ) as df:
@@ -446,7 +443,7 @@ def test_xr_loading_multiple_probes():
 
 def test_xr_oading_one_probe_drop_second_probe():
     with xr.open_dataset(
-        EXAMPLE_2D_PARTICLE_DATA / "0002.sdf",
+        TEST_2D_PARTICLE_DATA / "0002.sdf",
         keep_particles=True,
         drop_variables=[
             "Electron_Back_Probe_Px",
@@ -463,7 +460,7 @@ def test_xr_oading_one_probe_drop_second_probe():
 
 def test_open_mfdataset_data_vars_single():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex"],
     ) as df:
         ex_field = "Electric_Field_Ex"
@@ -478,7 +475,7 @@ def test_open_mfdataset_data_vars_single():
 
 def test_open_mfdataset_data_vars_multiple():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex", "Electric_Field_Ey"],
     ) as df:
         ex_field = "Electric_Field_Ex"
@@ -498,7 +495,7 @@ def test_open_mfdataset_data_vars_multiple():
 
 def test_open_mfdataset_data_vars_sparse_multiple():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         keep_particles=True,
         data_vars=[
             "Particles_Particles_Per_Cell_proton",
@@ -532,7 +529,7 @@ def test_open_mfdataset_data_vars_sparse_multiple():
 
 def test_open_mfdataset_data_vars_invalid_var():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field"],
     ) as df:
         assert len(df.variables.keys()) == 1
@@ -541,7 +538,7 @@ def test_open_mfdataset_data_vars_invalid_var():
 
 def test_open_mfdataset_data_vars_time():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex"],
     ) as df:
         time = df["time"]
@@ -570,7 +567,7 @@ def test_open_mfdataset_data_vars_time():
 
 def test_open_mfdataset_data_vars_sparse_time():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Particles_Particles_Per_Cell_proton"],
     ) as df:
         time = df["time"]
@@ -599,7 +596,7 @@ def test_open_mfdataset_data_vars_sparse_time():
 
 def test_open_mfdataset_data_vars_separate_times_single():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex"],
         separate_times=True,
     ) as df:
@@ -621,7 +618,7 @@ def test_open_mfdataset_data_vars_separate_times_single():
 
 def test_open_mfdataset_data_vars_separate_times_multiple():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex", "Electric_Field_Ey"],
         separate_times=True,
     ) as df:
@@ -653,7 +650,7 @@ def test_open_mfdataset_data_vars_separate_times_multiple():
 
 def test_open_mfdataset_data_vars_separate_times_multiple_times_keep_particles():
     with open_mfdataset(
-        EXAMPLE_FILES_DIR.glob("*.sdf"),
+        TEST_FILES_DIR.glob("*.sdf"),
         data_vars=["Electric_Field_Ex", "Particles_Px_electron_beam"],
         separate_times=True,
         keep_particles=True,

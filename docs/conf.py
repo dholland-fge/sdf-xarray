@@ -5,6 +5,9 @@
 
 from contextlib import suppress
 from importlib.metadata import version as get_version
+from pathlib import Path
+
+from sdf_xarray.download import fetch_dataset
 
 with suppress(ImportError):
     import matplotlib as mpl
@@ -125,4 +128,19 @@ intersphinx_mapping = {
     "xarray": ("https://docs.xarray.dev/en/latest", None),
     "pint": ("https://pint.readthedocs.io/en/stable", None),
     "pint-xarray": ("https://pint-xarray.readthedocs.io/en/stable", None),
+    "pooch": ("https://www.fatiando.org/pooch/latest", None),
 }
+
+datasets = [
+    "tutorial_dataset_1d",
+    "tutorial_dataset_2d",
+    "tutorial_dataset_2d_moving_window",
+]
+
+cwd = Path(__file__).parent.resolve()
+for dataset in datasets:
+    # If the dataset already exists then don't download it again
+    if (cwd / dataset).exists():
+        continue
+    else:
+        fetch_dataset(dataset, save_path=cwd)

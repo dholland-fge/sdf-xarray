@@ -1,19 +1,17 @@
-import pathlib
-
 import numpy as np
 import pytest
 import xarray as xr
 
-from sdf_xarray import open_mfdataset
+from sdf_xarray import download, open_mfdataset
 
-EXAMPLE_FILES_DIR = pathlib.Path(__file__).parent / "example_files_3D"
+TEST_FILES_DIR = download.fetch_dataset("test_files_3D")
 
 
 def test_rescale_coords_X():
     multiplier = 1e3
     unit_label = "mm"
 
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as ds:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as ds:
         ds_rescaled = ds.epoch.rescale_coords(
             multiplier=multiplier,
             unit_label=unit_label,
@@ -41,7 +39,7 @@ def test_rescale_coords_X_Y():
     multiplier = 1e2
     unit_label = "cm"
 
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as ds:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as ds:
         ds_rescaled = ds.epoch.rescale_coords(
             multiplier=multiplier,
             unit_label=unit_label,
@@ -70,7 +68,7 @@ def test_rescale_coords_X_Y_tuple():
     multiplier = 1e2
     unit_label = "cm"
 
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as ds:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as ds:
         ds_rescaled = ds.epoch.rescale_coords(
             multiplier=multiplier,
             unit_label=unit_label,
@@ -99,7 +97,7 @@ def test_rescale_coords_attributes_copied():
     multiplier = 1e6
     unit_label = "µm"
 
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as ds:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as ds:
         ds_rescaled = ds.epoch.rescale_coords(
             multiplier=multiplier,
             unit_label=unit_label,
@@ -112,7 +110,7 @@ def test_rescale_coords_attributes_copied():
 
 
 def test_rescale_coords_non_existent_coord():
-    with xr.open_dataset(EXAMPLE_FILES_DIR / "0000.sdf") as ds:
+    with xr.open_dataset(TEST_FILES_DIR / "0000.sdf") as ds:
         with pytest.raises(ValueError, match="Coordinate 'Time' not found"):
             ds.epoch.rescale_coords(
                 multiplier=1.0,
@@ -132,7 +130,7 @@ def test_rescale_coords_time():
     multiplier = 1e-15
     unit_label = "fs"
 
-    with open_mfdataset(EXAMPLE_FILES_DIR.glob("*.sdf")) as ds:
+    with open_mfdataset(TEST_FILES_DIR.glob("*.sdf")) as ds:
         ds_rescaled = ds.epoch.rescale_coords(
             multiplier=multiplier,
             unit_label=unit_label,

@@ -1,4 +1,3 @@
-import pathlib
 import tempfile
 from importlib.metadata import version
 
@@ -10,7 +9,7 @@ from matplotlib.animation import PillowWriter
 from packaging.version import Version
 
 import sdf_xarray.plotting as sxp
-from sdf_xarray import SDFPreprocess, open_mfdataset
+from sdf_xarray import SDFPreprocess, download, open_mfdataset
 
 mpl.use("Agg")
 
@@ -18,10 +17,8 @@ mpl.use("Agg")
 if Version(version("xarray")) >= Version("2025.8.0"):
     xr.set_options(use_new_combine_kwarg_defaults=True)
 
-EXAMPLE_FILES_DIR_1D = pathlib.Path(__file__).parent / "example_files_1D"
-EXAMPLE_FILES_DIR_2D_MW = (
-    pathlib.Path(__file__).parent / "example_files_2D_moving_window"
-)
+TEST_FILES_DIR_1D = download.fetch_dataset("test_files_1D")
+TEST_FILES_DIR_2D_MW = download.fetch_dataset("test_files_2D_moving_window")
 
 
 def test_animation_accessor():
@@ -36,7 +33,7 @@ def test_animation_accessor():
 
 
 def test_animate_headless():
-    with open_mfdataset(EXAMPLE_FILES_DIR_1D.glob("*.sdf")) as ds:
+    with open_mfdataset(TEST_FILES_DIR_1D.glob("*.sdf")) as ds:
         anim = ds["Derived_Number_Density_electron"].epoch.animate()
 
         # Specify a custom writable temporary directory
@@ -50,7 +47,7 @@ def test_animate_headless():
 
 def test_xr_animate_headless():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -68,7 +65,7 @@ def test_xr_animate_headless():
 
 def test_xr_get_frame_title_no_optional_params():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -81,7 +78,7 @@ def test_xr_get_frame_title_no_optional_params():
 
 def test_xr_get_frame_title_sdf_name():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -94,7 +91,7 @@ def test_xr_get_frame_title_sdf_name():
 
 def test_xr_get_frame_title_custom_title():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -107,7 +104,7 @@ def test_xr_get_frame_title_custom_title():
 
 def test_xr_get_frame_title_custom_title_and_sdf_name():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -122,7 +119,7 @@ def test_xr_get_frame_title_custom_title_and_sdf_name():
 
 def test_xr_calculate_window_boundaries_1D():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_2D_MW.glob("*.sdf"),
+        TEST_FILES_DIR_2D_MW.glob("*.sdf"),
         preprocess=SDFPreprocess(),
         combine="nested",
         compat="no_conflicts",
@@ -138,7 +135,7 @@ def test_xr_calculate_window_boundaries_1D():
 
 def test_xr_calculate_window_boundaries_2D():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_2D_MW.glob("*.sdf"),
+        TEST_FILES_DIR_2D_MW.glob("*.sdf"),
         preprocess=SDFPreprocess(),
         combine="nested",
         compat="no_conflicts",
@@ -154,7 +151,7 @@ def test_xr_calculate_window_boundaries_2D():
 
 def test_xr_calculate_window_boundaries_1D_xlim():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_2D_MW.glob("*.sdf"),
+        TEST_FILES_DIR_2D_MW.glob("*.sdf"),
         preprocess=SDFPreprocess(),
         combine="nested",
         compat="no_conflicts",
@@ -170,7 +167,7 @@ def test_xr_calculate_window_boundaries_1D_xlim():
 
 def test_xr_calculate_window_boundaries_2D_xlim():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_2D_MW.glob("*.sdf"),
+        TEST_FILES_DIR_2D_MW.glob("*.sdf"),
         preprocess=SDFPreprocess(),
         combine="nested",
         compat="no_conflicts",
@@ -186,7 +183,7 @@ def test_xr_calculate_window_boundaries_2D_xlim():
 
 def test_xr_compute_global_limits():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -202,7 +199,7 @@ def test_xr_compute_global_limits():
 
 def test_xr_compute_global_limits_percentile():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_1D.glob("*.sdf"),
+        TEST_FILES_DIR_1D.glob("*.sdf"),
         compat="no_conflicts",
         join="outer",
         preprocess=SDFPreprocess(),
@@ -218,7 +215,7 @@ def test_xr_compute_global_limits_percentile():
 
 def test_xr_compute_global_limits_NaNs():
     with xr.open_mfdataset(
-        EXAMPLE_FILES_DIR_2D_MW.glob("*.sdf"),
+        TEST_FILES_DIR_2D_MW.glob("*.sdf"),
         preprocess=SDFPreprocess(),
         combine="nested",
         compat="no_conflicts",

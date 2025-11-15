@@ -1,17 +1,15 @@
-import pathlib
-
 import numpy as np
 import numpy.testing as npt
 import pytest
 
-from sdf_xarray import SDFFile
+from sdf_xarray import SDFFile, download
 
-EXAMPLE_FILES_DIR = pathlib.Path(__file__).parent / "example_files_1D"
+TEST_FILES_DIR = download.fetch_dataset("test_files_1D")
 
 
 def test_sdffile():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0000.sdf")) as f:
-        assert f.header["filename"] == str(EXAMPLE_FILES_DIR / "0000.sdf")
+    with SDFFile(str(TEST_FILES_DIR / "0000.sdf")) as f:
+        assert f.header["filename"] == str(TEST_FILES_DIR / "0000.sdf")
         assert f.header["code_name"] == "Epoch1d"
         assert f.header["step"] == 0
         assert f.header["restart_flag"] is False
@@ -22,8 +20,8 @@ def test_sdffile():
 
 
 def test_sdffile_with_more_things():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf")) as f:
-        assert f.header["filename"] == str(EXAMPLE_FILES_DIR / "0010.sdf")
+    with SDFFile(str(TEST_FILES_DIR / "0010.sdf")) as f:
+        assert f.header["filename"] == str(TEST_FILES_DIR / "0010.sdf")
         assert f.header["code_name"] == "Epoch1d"
         assert f.header["step"] == 22105
         assert f.header["restart_flag"] is True
@@ -34,22 +32,22 @@ def test_sdffile_with_more_things():
 
 
 def test_variable_names():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0000.sdf")) as f:
+    with SDFFile(str(TEST_FILES_DIR / "0000.sdf")) as f:
         assert "Electric Field/Ex" in f.variables
         assert "grid" in f.grids
         assert "grid_mid" in f.grids
 
 
 def test_manual_close():
-    f = SDFFile(str(EXAMPLE_FILES_DIR / "0000.sdf"))
+    f = SDFFile(str(TEST_FILES_DIR / "0000.sdf"))
     f.close()
 
-    f = SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf"))
+    f = SDFFile(str(TEST_FILES_DIR / "0010.sdf"))
     f.close()
 
 
 def test_read_variable():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf")) as f:
+    with SDFFile(str(TEST_FILES_DIR / "0010.sdf")) as f:
         ex = f.variables["Electric Field/Ex"].data
         dist_fn = f.variables["dist_fn/x_px/electron"].data
 
@@ -89,7 +87,7 @@ def test_read_variable():
 
 
 def test_read_grids():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf")) as f:
+    with SDFFile(str(TEST_FILES_DIR / "0010.sdf")) as f:
         x_px = f.grids["grid/x_px/electron"].data
 
     assert len(x_px) == 2
@@ -103,7 +101,7 @@ def test_read_grids():
 
 
 def test_read_grid_mids():
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf")) as f:
+    with SDFFile(str(TEST_FILES_DIR / "0010.sdf")) as f:
         x_px = f.grids["grid/x_px/electron_mid"].data
 
     assert len(x_px) == 2
@@ -117,7 +115,7 @@ def test_read_grid_mids():
 
 
 def test_cant_read_closed_file():
-    f = SDFFile(str(EXAMPLE_FILES_DIR / "0000.sdf"))
+    f = SDFFile(str(TEST_FILES_DIR / "0000.sdf"))
     f.close()
 
     with pytest.raises(RuntimeError):
@@ -127,7 +125,7 @@ def test_cant_read_closed_file():
 if __name__ == "__main__":
     from pprint import pprint
 
-    with SDFFile(str(EXAMPLE_FILES_DIR / "0010.sdf")) as f:
+    with SDFFile(str(TEST_FILES_DIR / "0010.sdf")) as f:
         print("header")
         pprint(f.header)
         print("run_info")
