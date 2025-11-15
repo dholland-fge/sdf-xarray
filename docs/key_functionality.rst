@@ -229,9 +229,7 @@ labels by delaying the call to ``plt.show()``.
 .. jupyter-execute::
 
    ds["Total_Particle_Energy_Electron"].plot(label="Electron")
-   ds["Total_Particle_Energy_Photon"].plot(label="Photon")
    ds["Total_Particle_Energy_Ion"].plot(label="Ion")
-   ds["Total_Particle_Energy_Positron"].plot(label="Positron")
    plt.title("Particle Energy in Simulation per Species")
    plt.legend()
    plt.show()
