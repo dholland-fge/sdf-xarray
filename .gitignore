@@ -288,3 +288,6 @@ dkms.conf
 
 # Generated version file
 src/sdf_xarray/_version.py
+
+# Downloaded doc tutorial datasets
+docs/tutorial_*
