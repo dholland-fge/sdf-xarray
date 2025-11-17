@@ -48,6 +48,9 @@ We use [pytest](https://docs.pytest.org/en/stable/) to run tests.
 All new functionality should include relevant tests, placed in the `tests/`
 directory and following the existing structure.
 
+When running the tests for the first time you will need an internet connection
+in order to download the datasets.
+
 Before submitting code changes, ensure that all tests pass:
 
 ```bash
@@ -66,6 +69,9 @@ When contributing to the documentation:
 - Link to external functions or tools when possible.
 
 ### Compiling and adding documentation
+
+When compiling the documentation for the first time you will need an internet
+connection in order to download the datasets.
 
 To build the documentation locally, first install the required packages:
 
